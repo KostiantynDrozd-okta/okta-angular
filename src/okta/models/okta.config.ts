@@ -11,10 +11,12 @@
  */
 
 import { InjectionToken, Injector } from '@angular/core';
+import { Router } from '@angular/router';
 import { OktaAuthService } from '../services/okta.service';
 import { OktaAuthOptions } from '@okta/okta-auth-js';
 
 export type AuthRequiredFunction = (oktaAuth: OktaAuthService, injector: Injector) => void;
+export type PostLoginRedirectFunction = (fromUri: string, router: Router) => Promise<void>;
 export type IsAuthenticatedFunction = (oktaAuth: OktaAuthService) => Promise<boolean>;
 
 export interface TestingObject {
@@ -23,6 +25,7 @@ export interface TestingObject {
 
 export interface OktaConfig extends OktaAuthOptions {
   onAuthRequired?: AuthRequiredFunction;
+  onPostLoginRedirect?: PostLoginRedirectFunction;
   testing?: TestingObject;
   isAuthenticated?: IsAuthenticatedFunction;
 }

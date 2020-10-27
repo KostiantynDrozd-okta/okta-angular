@@ -11,6 +11,9 @@
  */
 
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+
+import { toRelativeUrl } from '@okta/okta-auth-js';
 
 import { OktaAuthService } from '../services/okta.service';
 
@@ -20,22 +23,28 @@ import { OktaAuthService } from '../services/okta.service';
 export class OktaCallbackComponent implements OnInit {
   error: string;
 
-  constructor(private okta: OktaAuthService) {}
+  constructor(private okta: OktaAuthService, private router: Router) {}
 
-  ngOnInit(): void {
-    /**
-     * Handles the response from Okta and parses tokens.
-     */
-    this.okta.handleAuthentication()
-      .then(() => {
-        /**
-         * Navigate back to the saved uri, or root of application.
-         */
-        const fromUri = this.okta.getFromUri();
-        window.location.replace(fromUri);
-      })
-      .catch(e => {
-        this.error = e.toString();
-      });
+  async ngOnInit(): Promise<void> {
+    try {
+      // Store tokens when redirect back from OKTA
+      await this.okta.storeTokensFromRedirect();
+
+      // Get and clear fromUri from storage
+      const fromUri =  this.okta.getFromUri();
+      this.okta.removeFromUri();
+
+      // Redirect to fromUri
+      const onPostLoginRedirect = this.okta.getOktaConfig().onPostLoginRedirect;
+      if (onPostLoginRedirect) {
+        onPostLoginRedirect(fromUri, this.router);
+      } else {
+        this.router.navigate([ 
+          toRelativeUrl(fromUri, window.location.origin) 
+        ], { replaceUrl: true });
+      }
+    } catch (e) {
+      this.error = e.toString();
+    }
   }
 }

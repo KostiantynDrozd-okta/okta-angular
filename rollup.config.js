@@ -47,6 +47,7 @@ export default {
         }),
         commonjs({
             namedExports: {
+                'node_modules/@okta/okta-auth-js/dist/okta-auth-js.umd.js': ['toRelativeUrl']
             }
         }),
         sourcemaps()
